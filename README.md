@@ -1,4 +1,4 @@
-# BHP — Bengaluru House Price Predictor
+# Bengaluru House Price Predictor
 
 A full-stack machine learning application that predicts residential property prices across 240 localities in Bengaluru. Trained on 7,000+ real transactions, served through a Flask REST API, and presented through a custom web frontend.
 
