@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BHP - Bengaluru House Price Predictor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --dark:        #0D1724;
+      --dark-2:      #121F30;
+      --cream:       #F7F3EE;
+      --white:       #FFFFFF;
+      --accent:      #D4703A;
+      --accent-dim:  rgba(212, 112, 58, 0.15);
+      --text:        #1A1A1A;
+      --muted:       #7A746D;
+      --rule:        #DDD8D1;
+      --rule-dark:   rgba(247, 243, 238, 0.07);
+      --serif:       'Playfair Display', Georgia, serif;
+      --sans:        'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--cream);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.4rem 2.5rem;
+      transition: background 0.4s, backdrop-filter 0.4s;
+    }
+
+    nav.solid {
+      background: rgba(13, 23, 36, 0.94);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    .nav-mark {
+      font-family: var(--serif);
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--cream);
+      letter-spacing: 0.04em;
+    }
+
+    .nav-mark span { color: var(--accent); }
+
+    .nav-city {
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(247, 243, 238, 0.35);
+      font-weight: 400;
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      min-height: 100vh;
+      background: var(--dark);
+      display: grid;
+      align-content: end;
+      padding: 0 2.5rem 5.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-img {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: center 30%;
+      z-index: 0;
+    }
+
+    /* gradient overlay — clear at top, dark at bottom where text sits */
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0; z-index: 1;
+      background:
+        linear-gradient(to bottom,
+          rgba(13,23,36,0.25) 0%,
+          rgba(13,23,36,0.45) 45%,
+          rgba(13,23,36,0.88) 75%,
+          rgba(13,23,36,0.97) 100%);
+      pointer-events: none;
+    }
+
+    /* faint diagonal accent line */
+    .hero::after {
+      content: '';
+      position: absolute; top: -20%; right: -5%; z-index: 2;
+      width: 1px; height: 140%;
+      background: linear-gradient(to bottom, transparent, rgba(212,112,58,0.25), transparent);
+      transform: rotate(18deg);
+      pointer-events: none;
+    }
+
+    /* push all hero text above the overlays */
+    .hero-eyebrow, .hero-h1, .hero-sub, .hero-scroll { position: relative; z-index: 3; }
+
+    .hero-eyebrow {
+      font-size: 0.68rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 500;
+      margin-bottom: 1.75rem;
+    }
+
+    .hero-h1 {
+      font-family: var(--serif);
+      font-size: clamp(3.6rem, 9.5vw, 8.5rem);
+      font-weight: 400;
+      line-height: 0.92;
+      letter-spacing: -0.025em;
+      color: var(--cream);
+      max-width: 860px;
+      margin-bottom: 2.25rem;
+    }
+
+    .hero-h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .hero-sub {
+      font-size: 1rem;
+      line-height: 1.75;
+      color: rgba(247, 243, 238, 0.45);
+      max-width: 420px;
+      font-weight: 300;
+    }
+
+    .hero-scroll {
+      position: absolute;
+      bottom: 2.2rem; right: 2.5rem;
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(247, 243, 238, 0.2);
+      writing-mode: vertical-rl;
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+
+    .hero-scroll::before {
+      content: '';
+      display: block;
+      width: 1px; height: 40px;
+      background: rgba(247, 243, 238, 0.12);
+    }
+
+    /* ─── ESTIMATE SECTION ─── */
+    .estimate {
+      background: var(--cream);
+      padding: 6.5rem 2.5rem 7rem;
+    }
+
+    .sec-head {
+      display: flex;
+      align-items: baseline;
+      gap: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--rule);
+      margin-bottom: 4rem;
+    }
+
+    .sec-num {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .sec-title {
+      font-family: var(--serif);
+      font-size: 2.1rem;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+    }
+
+    /* ─── FORM ─── */
+    .form-body { max-width: 880px; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: 3.5rem;
+      row-gap: 2.25rem;
+      margin-bottom: 3rem;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 0.65rem; }
+
+    .field-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .field input,
+    .field select {
+      font-family: var(--sans);
+      font-size: 1.05rem;
+      font-weight: 400;
+      color: var(--text);
+      background: transparent;
+      border: none;
+      border-bottom: 1.5px solid #C8C2BA;
+      padding: 0.7rem 0;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.25s;
+      -webkit-appearance: none;
+      appearance: none;
+      cursor: pointer;
+      border-radius: 0;
+    }
+
+    .field select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%237A746D' stroke-width='1.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 2px center;
+      padding-right: 1.5rem;
+    }
+
+    .field input:focus,
+    .field select:focus { border-bottom-color: var(--accent); }
+
+    .field input::placeholder { color: #B8B0A8; }
+
+    /* ─── ACTION ROW ─── */
+    .action-row {
+      display: flex;
+      align-items: center;
+      gap: 3.5rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      font-family: var(--sans);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--cream);
+      background: var(--dark);
+      border: none;
+      padding: 1rem 2.25rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      white-space: nowrap;
+    }
+
+    .btn:hover:not(:disabled) { background: var(--accent); }
+    .btn:active:not(:disabled) { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ─── RESULT ─── */
+    .result {
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.35s, transform 0.35s;
+      pointer-events: none;
+    }
+
+    .result.visible {
+      opacity: 1;
+      transform: none;
+      pointer-events: auto;
+    }
+
+    .result-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+
+    .result-price {
+      font-family: var(--serif);
+      font-size: clamp(2.2rem, 5vw, 3.75rem);
+      font-weight: 400;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      color: var(--text);
+    }
+
+    .result-price.is-error {
+      font-family: var(--sans);
+      font-size: 0.9rem;
+      font-weight: 400;
+      color: #B03A2E;
+      letter-spacing: 0;
+    }
+
+    .result-inr {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 0.4rem;
+      font-weight: 300;
+      letter-spacing: 0.01em;
+    }
+
+    /* ─── PULSE DOTS (loading) ─── */
+    .dots {
+      display: inline-flex; gap: 5px; align-items: center;
+      height: 1em;
+    }
+
+    .dots span {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 1.1s ease-in-out infinite;
+    }
+
+    .dots span:nth-child(2) { animation-delay: 0.18s; }
+    .dots span:nth-child(3) { animation-delay: 0.36s; }
+
+    @keyframes pulse {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+      40%            { transform: scale(1);   opacity: 1;   }
+    }
+
+    /* ─── STATS BAR ─── */
+    .stats {
+      background: var(--dark-2);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .stat {
+      padding: 3.25rem 2.5rem;
+      border-right: 1px solid var(--rule-dark);
+    }
+
+    .stat:last-child { border-right: none; }
+
+    .stat-n {
+      font-family: var(--serif);
+      font-size: 2.75rem;
+      font-weight: 400;
+      color: var(--accent);
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: 0.6rem;
+    }
+
+    .stat-d {
+      font-size: 0.78rem;
+      line-height: 1.65;
+      color: rgba(247, 243, 238, 0.38);
+      font-weight: 300;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: var(--dark);
+      border-top: 1px solid var(--rule-dark);
+      padding: 1.8rem 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .footer-l {
+      font-size: 0.72rem;
+      color: rgba(247, 243, 238, 0.22);
+    }
+
+    .footer-stack {
+      display: flex; gap: 1.25rem;
+    }
+
+    .footer-tag {
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(247, 243, 238, 0.18);
+      border: 1px solid rgba(247, 243, 238, 0.1);
+      padding: 0.25rem 0.6rem;
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 680px) {
+      nav { padding: 1.1rem 1.25rem; }
+      .hero { padding: 0 1.25rem 4.5rem; }
+      .estimate { padding: 4.5rem 1.25rem 5rem; }
+      .form-grid { grid-template-columns: 1fr; row-gap: 1.75rem; }
+      .action-row { gap: 2rem; }
+      .stats { grid-template-columns: 1fr; }
+      .stat { border-right: none; border-bottom: 1px solid var(--rule-dark); }
+      .stat:last-child { border-bottom: none; }
+      footer { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav id="nav">
+    <div class="nav-mark">B<span>H</span>P</div>
+    <div class="nav-city">Bengaluru · Real Estate</div>
+  </nav>
+
+  <!-- ─── HERO ─── -->
+  <section class="hero">
+    <img class="hero-img" src="_DSC9610-Edited_-min.jpg" alt="Bengaluru home">
+    <div class="hero-eyebrow">ML-Powered Valuation &nbsp;·&nbsp; 240 Localities</div>
+    <h1 class="hero-h1">
+      What is<br>
+      a home in<br>
+      <em>Bengaluru</em><br>
+      worth?
+    </h1>
+    <p class="hero-sub">
+      A linear regression model trained on 7,000+ real transactions.
+      Enter the details and get a price estimate - no nonsense.
+    </p>
+    <div class="hero-scroll">Scroll</div>
+  </section>
+
+  <!-- ─── ESTIMATE ─── -->
+  <section class="estimate">
+    <div class="sec-head">
+      <span class="sec-num"></span>
+      <h2 class="sec-title">Estimate a property</h2>
+    </div>
+
+    <div class="form-body">
+      <div class="form-grid" id="predict-form">
+        <div class="field">
+          <label class="field-label" for="location">Locality</label>
+          <select id="location">
+            <option value="">Loading…</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="sqft">Area &nbsp;(sq. ft.)</label>
+          <input id="sqft" type="number" placeholder="e.g. 1200" min="100" step="1">
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="bhk">BHK</label>
+          <select id="bhk">
+            <option value="">- select -</option>
+            <option value="1">1 BHK</option>
+            <option value="2">2 BHK</option>
+            <option value="3">3 BHK</option>
+            <option value="4">4 BHK</option>
+            <option value="5">5 BHK</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="bath">Bathrooms</label>
+          <select id="bath">
+            <option value="">- select -</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="btn" id="btn" onclick="predict()">Get Estimate</button>
+
+        <div class="result" id="result">
+          <div class="result-label">Estimated Price</div>
+          <div class="result-price" id="price">-</div>
+          <div class="result-inr" id="inr"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── STATS ─── -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-n">7,239</div>
+      <div class="stat-d">Real transactions used to train the model, cleaned from Bengaluru housing data.</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n">240</div>
+      <div class="stat-d">Localities covered - from Whitefield and Indiranagar to Yelahanka and Sarjapur.</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n">90%</div>
+      <div class="stat-d">R² accuracy on held-out test data. Linear regression - interpretable, not a black box.</div>
+    </div>
+  </div>
+
+  <!-- ─── FOOTER ─── -->
+  <footer>
+    <span class="footer-l">BHP &mdash; Bengaluru House Price Predictor</span>
+    <div class="footer-stack">
+      <span class="footer-tag">scikit-learn</span>
+      <span class="footer-tag">Flask</span>
+      <span class="footer-tag">Linear Regression</span>
+    </div>
+  </footer>
+
+  <script>
+    const API = 'http://127.0.0.1:5000';
+
+    // ─── nav scroll tint ───
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('solid', window.scrollY > 60);
+    }, { passive: true });
+
+    // ─── load locations ───
+    async function loadLocations() {
+      try {
+        const res  = await fetch(`${API}/get_location_names`);
+        const data = await res.json();
+        const sel  = document.getElementById('location');
+
+        const sorted = [...data.locations].sort((a, b) => a.localeCompare(b));
+        sel.innerHTML = '<option value="">- select locality -</option>';
+        sorted.forEach(loc => {
+          const opt = document.createElement('option');
+          opt.value = loc;
+          opt.textContent = toTitle(loc);
+          sel.appendChild(opt);
+        });
+        console.log('Locations loaded:', sorted);
+      } catch {
+        document.getElementById('location').innerHTML =
+          '<option value="">⚠ Server offline</option>';
+      }
+    }
+
+    function toTitle(s) {
+      return s.replace(/\b([a-z])/g, c => c.toUpperCase());
+    }
+
+    // ─── predict ───
+    async function predict() {
+      const location = document.getElementById('location').value;
+      const sqft     = document.getElementById('sqft').value;
+      const bhk      = document.getElementById('bhk').value;
+      const bath     = document.getElementById('bath').value;
+
+      if (!location || !sqft || !bhk || !bath) {
+        showError('Fill in all four fields to get an estimate.');
+        return;
+      }
+
+      const btn = document.getElementById('btn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="dots"><span></span><span></span><span></span></span>';
+      showLoading();
+
+      try {
+        const res  = await fetch(`${API}/predict_home_price`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({
+            location,
+            total_sqft: parseFloat(sqft),
+            bhk:        parseInt(bhk),
+            bath:       parseInt(bath),
+          }),
+        });
+
+        const data = await res.json();
+        if (data.estimated_price !== undefined) {
+          showPrice(data.estimated_price);
+        } else {
+          showError(data.error || 'Unexpected response from server.');
+        }
+      } catch {
+        showError('Cannot reach the server. Is server.py running on port 5000?');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Get Estimate';
+      }
+    }
+
+    function showLoading() {
+      const r = document.getElementById('result');
+      document.getElementById('price').className = 'result-price';
+      document.getElementById('price').innerHTML =
+        '<span class="dots"><span></span><span></span><span></span></span>';
+      document.getElementById('inr').textContent = '';
+      r.classList.add('visible');
+    }
+
+    function showPrice(lakhs) {
+      const r     = document.getElementById('result');
+      const price = document.getElementById('price');
+      const inr   = document.getElementById('inr');
+
+      price.className = 'result-price';
+      animateCount(price, lakhs);
+      inr.textContent = '≈ ₹ ' + (lakhs * 100000).toLocaleString('en-IN');
+      r.classList.add('visible');
+    }
+
+    function showError(msg) {
+      const r     = document.getElementById('result');
+      const price = document.getElementById('price');
+      const inr   = document.getElementById('inr');
+
+      price.className = 'result-price is-error';
+      price.textContent = msg;
+      inr.textContent = '';
+      r.classList.add('visible');
+    }
+
+    // count-up animation for the price
+    function animateCount(el, target) {
+      const duration = 600;
+      const start    = performance.now();
+
+      function step(now) {
+        const t   = Math.min((now - start) / duration, 1);
+        const val = easeOut(t) * target;
+        el.textContent = '₹ ' + val.toFixed(2) + ' L';
+        if (t < 1) requestAnimationFrame(step);
+        else el.textContent = '₹ ' + target.toFixed(2) + ' L';
+      }
+
+      requestAnimationFrame(step);
+    }
+
+    function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+    loadLocations();
+  </script>
+</body>
+</html>

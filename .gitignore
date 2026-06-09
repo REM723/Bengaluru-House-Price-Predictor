@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+
+# Data — download from https://www.kaggle.com/datasets/amitabhajoy/bengaluru-house-price-data
+data/Bengaluru_House_Data.csv
+data/bhp.csv
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Claude Code
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
